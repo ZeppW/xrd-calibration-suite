@@ -24,3 +24,9 @@ env/
 dist/
 build/
 *.egg-info/
+
+# Keep curated sample maps in repo
+!sample_maps/
+!sample_maps/**/
+!sample_maps/**/*.npy
+!sample_maps/**/*.png
