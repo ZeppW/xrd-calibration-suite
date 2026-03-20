@@ -88,5 +88,4 @@ python part3_poni_optimization/poni_grid_search_4d.py \
 ## Notes
 
 - Paths in examples use Windows format; adjust as needed.
-- For GitHub push/authentication, use a Personal Access Token (PAT) or SSH key, not an account password.
 - Curated sample PT/NI maps for both worked datasets are included under `sample_maps/`.
