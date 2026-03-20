@@ -1,0 +1,7 @@
+numpy
+pandas
+matplotlib
+h5py
+scipy
+Pillow
+pyFAI
