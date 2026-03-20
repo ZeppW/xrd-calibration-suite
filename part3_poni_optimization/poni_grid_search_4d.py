@@ -371,6 +371,9 @@ def run(args):
             if np.isfinite(amp) and abs(amp) < best_amp:
                 best_amp = abs(amp)
                 best_row = dict(row)
+                # pyFAI.save can append if file exists; force overwrite to keep a single calibration block.
+                if best_poni.exists():
+                    best_poni.unlink()
                 ai.save(str(best_poni))
                 best_json.write_text(json.dumps(best_row, indent=2), encoding="utf-8")
                 log(f"  New best |amp|={best_amp:.8g} at dx={dx:+.3f},dy={dy:+.3f},dtilt={dtilt:+.4f},dtiltplan={dtiltplan:+.4f}")

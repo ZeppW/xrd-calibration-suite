@@ -44,6 +44,9 @@ def write_candidate_poni(base_poni: Path, out_poni: Path, dx: float, dy: float, 
         wavelength=fit2d.get("wavelength", None),
     )
     out_poni.parent.mkdir(parents=True, exist_ok=True)
+    # pyFAI.save can append when path already exists; force overwrite.
+    if out_poni.exists():
+        out_poni.unlink()
     ai.save(str(out_poni))
 
     out_fit = ai.getFit2D()

@@ -236,6 +236,9 @@ def run(args):
         dtiltplan=float(best["dtiltplan"]),
     )
     best_poni_path = out_dir / "best_local_candidate.poni"
+    # pyFAI.save can append if target exists; force overwrite.
+    if best_poni_path.exists():
+        best_poni_path.unlink()
     best_ai.save(str(best_poni_path))
 
     # Essential validation pass on a larger top-N (e.g. 20) without using it
