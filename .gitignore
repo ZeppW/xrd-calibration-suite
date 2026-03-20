@@ -30,3 +30,6 @@ build/
 !sample_maps/**/
 !sample_maps/**/*.npy
 !sample_maps/**/*.png
+!final_poni/
+!final_poni/*.poni
+!final_poni/README.md
