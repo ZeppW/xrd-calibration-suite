@@ -1,91 +1,94 @@
 # XRD Calibration Suite
 
-This repository packages three XRD tools:
+This repo provides 3 tools used in your workflow:
 
-1. `part1_map_viewer`: interactive map click viewer (left: metric map, right: spectrum or image)
-2. `part2_annulus_mask`: interactive annulus/phi mask builder (Dioptas-compatible `.mask`)
-3. `part3_poni_optimization`: PONI optimization workflow (grid + local refinement)
+1. `part1_map_viewer`: click a map point and view the corresponding XRD image.
+2. `part2_annulus_mask`: interactively draw annulus/phi masks and export Dioptas `.mask`.
+3. `part3_poni_optimization`: optimize PONI (Fit2D center/tilt space).
 
-The code is oriented to your existing PIMEGA-style datasets and keeps the latest project conventions:
-- `col=0` is excluded in PONI selection logic
-- robust row-fit outlier filtering is enabled
-- local refinement supports fast top-10 optimization with essential top-20 validation
-- `directDist` is kept fixed during optimization
+## Quick Start
 
-## Environment
-
-Python 3.10+ recommended.
-
-Install dependencies:
+Python 3.10+ is recommended.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Part 1: Interactive Map Viewer
+## Part 1: Map -> XRD Image Viewer
 
-### GUI launcher (path picker, no typing)
+### Inputs
+
+- Root dataset folder containing `*_restored.hdf5`
+- Custom 2D map `.npy`
+
+### Run (GUI)
 
 ```bash
 python part1_map_viewer/launch_map_viewer_gui.py
 ```
 
-### CLI
+### Run (CLI)
 
 ```bash
-python part1_map_viewer/view_map_with_1d.py --help
+python part1_map_viewer/view_map_with_1d.py \
+  --root-dir E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files \
+  --map-npy F:/NMR/NMR/py_projects/xrd/my_custom_map.npy
 ```
+
+### Notes
+
+- Left panel: map (`origin=lower`).
+- Right panel: XRD image (`imshow`), default `origin=upper`.
+- Press `o` to toggle right-image origin (`upper`/`lower`).
 
 ## Part 2: Annulus Mask Builder
 
-### GUI launcher (file dialogs for `.poni`, `.h5`, output)
+### Recommended launcher (simple)
+
+```bash
+python part2_annulus_mask/launch_mask_maker_gui.py
+```
+
+You only choose:
+- `.poni` file
+- `.h5/.hdf5` image file
+- save directory for outputs
+
+Outputs:
+- `<h5_stem>.mask`
+- `<h5_stem>.json`
+
+### Legacy full launcher
 
 ```bash
 python part2_annulus_mask/launch_annulus_builder_gui.py
 ```
 
-### CLI
+### Interactive keys
 
-```bash
-python part2_annulus_mask/interactive_annulus_mask_builder.py --help
-```
+- `n`: start new annulus
+- `f`: full 360 annulus (after inner/outer radius)
+- `u`: undo
+- `c`: clear all
+- `s`: save mask directly to selected output path
+- `j`: save JSON directly to selected output path
+- `q`: quit
+
+Note: Matplotlib default save-dialog shortcut is disabled in this tool, so `s/j` always use project save paths.
 
 ## Part 3: PONI Optimization
 
 Main scripts:
-- `poni_theta_phi_check.py`: top-point selection + per-file theta0 + cake + theta-vs-phi
-- `poni_grid_search_4d.py`: 4D Fit2D grid scan (`dx`, `dy`, `dtilt`, `dtiltplan`)
-- `poni_local_refine.py`: coordinate-descent local refinement + essential top-20 validation
+- `poni_theta_phi_check.py`: top-point selection, cake generation, theta-vs-phi checks
+- `poni_grid_search_4d.py`: coarse grid search in `dx`, `dy`, `dtilt`, `dtiltplan`
+- `poni_local_refine.py`: local coordinate-descent refinement
 
-### Example: local refinement from a known good start
+Current project conventions:
+- skip `col=0` during PONI calibration point selection
+- robust row-fit filtering enabled
+- optional essential top-20 validation
+- keep `directDist` fixed during optimization
 
-```bash
-python part3_poni_optimization/poni_local_refine.py \
-  --base-poni E:/XRD/proc/proc/LaB6_003_25keV_poni.poni \
-  --root-dir E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files \
-  --pt-map-path E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files/hdf5_images_output/maps/map_pt_roi_power.npy \
-  --mask-source F:/NMR/NMR/py_projects/xrd/annulus_phi_mask.mask \
-  --mask-transform flipud \
-  --start-dx -1.6 --start-dy 0 --start-dtilt 0.22 --start-dtiltplan 1.0 \
-  --top-n 10 --top-n-essential 20 --max-iters 12 \
-  --out-dir E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files/hdf5_images_output/poni_local_refine
-```
+## Included Sample Maps
 
-### Example: coarse 4D grid
-
-```bash
-python part3_poni_optimization/poni_grid_search_4d.py \
-  --base-poni E:/XRD/proc/proc/LaB6_003_25keV_poni.poni \
-  --root-dir E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files \
-  --pt-map-path E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files/hdf5_images_output/maps/map_pt_roi_power.npy \
-  --mask-source F:/NMR/NMR/py_projects/xrd/annulus_phi_mask.mask \
-  --mask-transform flipud \
-  --top-n 10 \
-  --dx-values=-1,0,1 --dy-values=-1,0,1 --dtilt-values=-0.1,0,0.1 --dtiltplan-values=-6,0,6 \
-  --out-dir E:/XRD/data/PIMEGA_gridscan_00_47_31_restored_files/hdf5_images_output/poni_grid_search_4d
-```
-
-## Notes
-
-- Paths in examples use Windows format; adjust as needed.
-- Curated sample PT/NI maps for both worked datasets are included under `sample_maps/`.
+Curated PT/NI map files for both worked datasets are in `sample_maps/`.

@@ -260,8 +260,16 @@ class InteractiveAnnulusMaskBuilder:
         self.current: dict[str, float] = {}
         self.guide_artists: list[Any] = []
 
-        self.fig, self.ax = plt.subplots(figsize=(12, 8))
+        self.fig, self.ax = plt.subplots(figsize=(14, 8.5))
+        # Reserve a wider left margin for readable status text.
+        self.fig.subplots_adjust(left=0.33, right=0.99, top=0.93, bottom=0.06)
         self.fig.canvas.manager.set_window_title("Interactive Annulus Mask Builder")
+        # Disable Matplotlib default key bindings (notably 's' = save figure dialog)
+        # so our own shortcuts (s/j/q/...) behave deterministically.
+        manager = getattr(self.fig.canvas, "manager", None)
+        handler_id = getattr(manager, "key_press_handler_id", None)
+        if handler_id is not None:
+            self.fig.canvas.mpl_disconnect(handler_id)
 
         extent = self._image_extent()
         self.image_artist = self.ax.imshow(
@@ -331,18 +339,20 @@ class InteractiveAnnulusMaskBuilder:
         self._update_axes_limits()
 
         self.status_text = self.fig.text(
-            0.01,
-            0.01,
+            0.015,
+            0.02,
             "",
             ha="left",
             va="bottom",
             family="monospace",
-            fontsize=10,
+            fontsize=11,
+            linespacing=1.35,
+            wrap=True,
         )
 
         self.fig.canvas.mpl_connect("button_press_event", self.on_click)
         self.fig.canvas.mpl_connect("key_press_event", self.on_key_press)
-        self._set_status(self._controls_text())
+        self._set_status()
 
     def _resolve_display_limits(
         self, vmin: float | None, vmax: float | None
@@ -360,7 +370,8 @@ class InteractiveAnnulusMaskBuilder:
 
     def _controls_text(self) -> str:
         return (
-            "Controls: n=new annulus | f=full 360 (after radii) | u=undo | c=clear | "
+            "Controls:\n"
+            "n=new annulus | f=full 360 (after radii) | u=undo | c=clear\n"
             "s=save mask | j=save json | q=quit"
         )
 
@@ -820,12 +831,11 @@ class InteractiveAnnulusMaskBuilder:
         elif key in {"q", "escape"}:
             plt.close(self.fig)
         elif key == "h":
-            self._set_status(self._controls_text())
+            self._set_status("Help refreshed.")
 
     def run(self) -> None:
         self._refresh_overlay()
-        self._set_status(self._controls_text())
-        plt.tight_layout()
+        self._set_status()
         plt.show()
 
 
